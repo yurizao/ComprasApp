@@ -5,7 +5,7 @@ type Props = PressableProps & {
     data: {
         nome: string
         descricao: string
-        valor: string
+        valor: number
     }
 }
 

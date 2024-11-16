@@ -8,7 +8,6 @@ const Layout: React.FC = () => {
     <SQLiteProvider databaseName="MyDatabase.db" onInit={initializeDatabase}>
       <Tabs>
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="produtos" options={{ title: 'Produtos' }} />
       </Tabs>
     </SQLiteProvider>
   );

@@ -9,7 +9,7 @@ const Home = () => {
   const [id, setId] = useState(""); 
   const [nome, setNome] = useState(""); 
   const [search, setSearch] = useState(""); 
-  const [descricao, setDescricao] = useState(""); 
+  const [quantidade, setQuantidade] = useState(""); 
   const [valor, setValor] = useState(""); 
   const [products, setProducts] = useState<ProductDatabase[]>([]);
 
@@ -18,15 +18,16 @@ const Home = () => {
   const createProduct = async () => {
     const productData = {
       nome,
-      descricao,
-      valor: new Decimal(valor.replace(',', '.')).toNumber()
+      quantidade: parseInt(quantidade, 10),
+      valor: new Decimal(valor.replace(',', '.')).toNumber(),
+      compra_id: 0,
     };
 
     try {
       await create(productData);
       Alert.alert("Sucesso!", "Produto cadastrado com sucesso.");
       setNome('');
-      setDescricao('');
+      setQuantidade('');
       setValor('');
 
       list ()
@@ -53,7 +54,7 @@ const Home = () => {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Input placeholder="Nome" value={nome} onChangeText={setNome} />
-      <Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} />
+      <Input placeholder="Quantidade" value={quantidade} onChangeText={setQuantidade} keyboardType="numeric" />
       <Input placeholder="Valor" value={valor} onChangeText={setValor} keyboardType="numeric" />
       <Button title="Cadastrar" onPress={createProduct} />
 

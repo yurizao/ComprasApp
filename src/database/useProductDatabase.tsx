@@ -1,10 +1,10 @@
 import { useSQLiteContext } from "expo-sqlite"
 
-
 export type ProductDatabase = {
     id: number
+    compra_id: number
     nome: string
-    descricao: string
+    quantidade: number
     valor: number
 }
 
@@ -14,14 +14,14 @@ export function useProductDatabase () {
 
     async function create (data: Omit<ProductDatabase, "id">) {
         const statement = await database.prepareAsync(
-            "INSERT INTO produtos (nome, valor, descricao) VALUES ($nome, $valor, $descricao) "      
+            "INSERT INTO produtos (nome, valor, quantidade) VALUES ($nome, $valor, $quantidade) "      
         )
 
         try {
           const result = await statement.executeAsync ({
             $nome: data.nome, 
             $valor: data.valor,
-            $descricao: data.descricao
+            $quantidade: data.quantidade
           })  
 
           const insertedRowId = result.lastInsertRowId.toLocaleString()
@@ -37,7 +37,7 @@ export function useProductDatabase () {
     async function searchByName (nome: string) {
 
         try {
-            const query = "SELECT * FROM produtos WHERE nome LIKE ?"
+            const query = "SELECT * FROM Produtos WHERE nome LIKE ?"
 
             const response = await database.getAllAsync<ProductDatabase>(query, `%${nome}%`)
 

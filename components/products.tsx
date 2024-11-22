@@ -4,7 +4,7 @@ import {  Text, Pressable, PressableProps, } from "react-native"
 type Props = PressableProps & {
     data: {
         nome: string
-        descricao: string
+        quantidade: number
         valor: number
     }
 }
@@ -16,7 +16,7 @@ export function Product({ data, ...rest}: Props) {
             {backgroundColor: "#CECECE", padding: 24, borderRadius: 5, gap: 12, flexDirection: "row"} } 
             {...rest}>
             <Text>
-                {data.nome} - {data.descricao} {data.valor}
+                {data.nome} {data.quantidade} {data.valor}
             </Text>
 
         </Pressable>

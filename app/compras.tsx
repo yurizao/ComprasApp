@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Input } from "@/components/input";
 import { useCompraDatabase, CompraDatabase } from "@/src/database/useCompraDatabase";
 import { Compra } from '@/components/compras';
-
+import { useRouter } from 'expo-router';
 
 const Compras = () => {
     const [data, setData] = useState(new Date());
@@ -12,8 +12,15 @@ const Compras = () => {
     const [show, setShow] = useState(false);
     const [search, setSearch] = useState(""); 
     const [compras, setCompras] = useState<CompraDatabase[]>([]);
-    
+
     const { create, searchByName, remove } = useCompraDatabase();
+    const router = useRouter();
+
+    const handleOpenDetails = (itemId: number) => {
+      // Redireciona para a tela de detalhes da compra
+      const path = `/details/${itemId}`;
+      router.push(path);
+    };
 
     const handleDateChange = (event: any, selectedDate?: Date) => {
         const currentDate = selectedDate || data;
@@ -22,48 +29,36 @@ const Compras = () => {
     };
     
     const createCompra = async () => {
-        const compraData = {
-          data: data.toISOString(), 
-          descricao
-        };
-        console.log('Compra cadastrada:', compraData);
-
-        try {
-            await create(compraData);
-            Alert.alert("Sucesso!", "Compra cadastrada com sucesso.");
-            setDescricao('');
-      
-            list ()
-            
-          } catch (error) {
-            console.log(error);
-            Alert.alert("Erro!", "Não foi possível cadastrar a compra.");
-          }
-        };
+      const compraData = {
+        data: data.toISOString(),
+        descricao,
+      };
+    
+      try {
+        const result = await create(compraData);
+        const compraId = result.insertedRowId;
+    
+        Alert.alert("Sucesso!", "Compra cadastrada com sucesso.");
+        setDescricao('');
+        list();
+      } catch (error) {
+        console.log(error);
+        Alert.alert("Erro!", "Não foi possível cadastrar a compra.");
+      }
+    };
 
     async function list() {
         try {
-          const response = await searchByName(search);
-          setCompras(response);
+          const compraResponse = await searchByName(search);  // Buscando compras
+          setCompras(compraResponse);
         } catch (error) {
           console.log(error);
         }
-      }
-
-    async function removeCompra(id: number) {
-      try{
-        await remove(id)
-        await list()
-      } catch (error) {
-        console.log(error)
-      }
     }
-    
 
     useEffect(() => {
         list();
-      }, [search]);
-    
+    }, [search]);
 
     return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
@@ -80,22 +75,19 @@ const Compras = () => {
             )}
 
             <Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} />
-
             <Button title="Cadastrar" onPress={createCompra} />
 
-      <FlatList
-        data={compras}
-        keyExtractor={(item) => String(item.id)}  
-        renderItem={({ item }: { item: CompraDatabase }) => (  
-          <Compra 
-          data={item} 
-          onDelete={() => removeCompra(item.id)} 
-          />  
-        )}
-      />
-
-     </View>
+            <FlatList
+                data={compras}
+                keyExtractor={(item) => String(item.id)}  
+                renderItem={({ item }) => (
+                    <View>
+                        <Compra data={item} onDelete={() => remove(item.id)} onOpen={() => handleOpenDetails(item.id)} />
+                    </View>
+                )}
+            />
+        </View>
     );
-  };
+};
 
 export default Compras;

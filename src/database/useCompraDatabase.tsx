@@ -52,5 +52,17 @@ export function useCompraDatabase () {
         }
     }
 
-    return { create, searchByName, remove }
+    async function show(id:number) {
+        try {
+            const query = "SELECT * FROM compra WHERE id = ?"
+
+            const response = await database.getFirstAsync<CompraDatabase> (query, [id])
+
+            return response
+        } catch (error) {
+            throw error
+        }
+    }
+
+    return { create, searchByName, remove, show }
 }

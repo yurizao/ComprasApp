@@ -14,14 +14,15 @@ export function useProductDatabase () {
 
     async function create (data: Omit<ProductDatabase, "id">) {
         const statement = await database.prepareAsync(
-            "INSERT INTO produtos (nome, valor, quantidade) VALUES ($nome, $valor, $quantidade) "      
+            "INSERT INTO produtos (nome, valor, quantidade, compra_id) VALUES ($nome, $valor, $quantidade, $compra_id)"     
         )
 
         try {
           const result = await statement.executeAsync ({
             $nome: data.nome, 
             $valor: data.valor,
-            $quantidade: data.quantidade
+            $quantidade: data.quantidade,
+            $compra_id: data.compra_id
           })  
 
           const insertedRowId = result.lastInsertRowId.toLocaleString()
@@ -47,5 +48,16 @@ export function useProductDatabase () {
         }
     }
 
-    return { create, searchByName }
+    const searchByCompraId = async (compraId: number) => {
+        try {
+          const query = "SELECT * FROM Produtos WHERE compra_id = ?";
+          const result = await database.getAllAsync<ProductDatabase>(query, [compraId]);
+          return result;
+        } catch (error) {
+          console.error("Erro ao buscar produtos por compra_id:", error);
+          return [];
+        }
+      };
+
+    return { create, searchByName, searchByCompraId }
 }

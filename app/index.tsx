@@ -14,10 +14,10 @@ const Home = () => {
   const [valor, setValor] = useState(""); 
   const [products, setProducts] = useState<ProductDatabase[]>([]);
   const [compras, setCompras] = useState<CompraDatabase[]>([]);
-  const [selectedCompraId, setSelectedCompraId] = useState<number | null>(null);  // Estado para armazenar o ID da compra selecionada
+  const [selectedCompraId, setSelectedCompraId] = useState<number | null>(null);
 
   const { create, searchByName } = useProductDatabase();
-  const { searchByName: searchCompras } = useCompraDatabase();  // Função de busca de compras
+  const { searchByName: searchCompras } = useCompraDatabase();
 
   const createProduct = async (compraId: number) => {
     if (!compraId) {
@@ -29,13 +29,12 @@ const Home = () => {
       nome,
       quantidade: parseInt(quantidade, 10),
       valor: new Decimal(valor.replace(',', '.')).toNumber(),
-      compra_id: compraId,  // Aqui você passa o compra_id da compra já registrada
+      compra_id: compraId,
     };
 
     console.log("Produto a ser cadastrado:", productData);
   
     try {
-      // Criação do produto com o compra_id correto
       await create(productData);
       Alert.alert("Sucesso!", "Produto cadastrado com sucesso.");
       setNome('');
@@ -48,12 +47,11 @@ const Home = () => {
     }
   };
 
-  // Função para listar produtos e compras
   async function list() {
     try {
       const productResponse = await searchByName(search);
       setProducts(productResponse);
-      const compraResponse = await searchCompras(search);  // Buscando compras
+      const compraResponse = await searchCompras(search);
       setCompras(compraResponse);
     } catch (error) {
       console.log(error);
@@ -63,21 +61,23 @@ const Home = () => {
   useEffect(() => {
     list();
   }, [search]);
+  
+  useEffect(() => {
+    list();
+  }, [compras]);
+  
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      {/* Campos de entrada para cadastro de produto */}
       <Input placeholder="Nome" value={nome} onChangeText={setNome} />
       <Input placeholder="Quantidade" value={quantidade} onChangeText={setQuantidade} keyboardType="numeric" />
       <Input placeholder="Valor" value={valor} onChangeText={setValor} keyboardType="numeric" />
 
-      {/* Seleção de compra */}
       <Input 
         placeholder="Selecione uma Compra" 
         value={selectedCompraId ? `Compra ID: ${selectedCompraId}` : ""}
-        editable={false}  // Apenas para visualização
+        editable={false}
       />
-      {/* Lista de compras */}
       <FlatList
          data={compras}
          keyExtractor={(item) => String(item.id)}
@@ -86,30 +86,27 @@ const Home = () => {
          title={`Selecionar Compra ${item.id}`} 
          onPress={() => {
          setSelectedCompraId(item.id);
-         console.log("Compra selecionada:", item.id);  // Adicionando um log para verificar o ID da compra
+         console.log("Compra selecionada:", item.id);
       }} 
     />
   )}
 />
-
-      {/* Botão para cadastrar produto */}
       <Button 
         title="Cadastrar Produto"
         onPress={async () => {
           if (selectedCompraId !== null && selectedCompraId !== undefined) {
-            await createProduct(selectedCompraId);  // Passa o compraId selecionado
+            await createProduct(selectedCompraId);
           } else {
             Alert.alert("Erro", "Selecione uma compra primeiro.");
           }
         }}
       />
 
-      {/* Lista de produtos */}
       <FlatList
         data={products}
-        keyExtractor={(item) => String(item.id)}  // Convertendo ID para String
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <Product data={item} />  // Passando o item para o componente Product
+          <Product data={item} /> 
         )}
       />
     </View>

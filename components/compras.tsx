@@ -20,7 +20,7 @@ export function Compra({ data, onDelete, onOpen, ...rest}: Props) {
             {backgroundColor: "#CECECE", padding: 24, borderRadius: 5, gap: 12, flexDirection: "row"} } 
             {...rest}>
             <Text>
-                {data.data} {data.descricao}
+                {data.descricao}
             </Text>
 
         <TouchableOpacity onPress ={onDelete}>
@@ -31,6 +31,8 @@ export function Compra({ data, onDelete, onOpen, ...rest}: Props) {
         <TouchableOpacity onPress ={onOpen}>
             <MaterialIcons name = "visibility" size={24} color="blue" />
         </TouchableOpacity>
+
+ 
 
         </Pressable>
     )

@@ -11,14 +11,13 @@ export type ProductDatabase = {
 export function useProductDatabase () {
     const database = useSQLiteContext()
 
-
     async function create (data: Omit<ProductDatabase, "id">) {
         const statement = await database.prepareAsync(
             "INSERT INTO produtos (nome, valor, quantidade, compra_id) VALUES ($nome, $valor, $quantidade, $compra_id)"     
         )
 
         try {
-          const result = await statement.executeAsync ({
+          const result = await statement.executeAsync({
             $nome: data.nome, 
             $valor: data.valor,
             $quantidade: data.quantidade,
@@ -36,12 +35,9 @@ export function useProductDatabase () {
     }
 
     async function searchByName (nome: string) {
-
         try {
             const query = "SELECT * FROM Produtos WHERE nome LIKE ?"
-
             const response = await database.getAllAsync<ProductDatabase>(query, `%${nome}%`)
-
             return response
         } catch (error) {
             throw error
@@ -59,5 +55,28 @@ export function useProductDatabase () {
         }
       };
 
-    return { create, searchByName, searchByCompraId }
+    const removeProduct = async (productId: number) => {
+        const statement = await database.prepareAsync(
+            "DELETE FROM produtos WHERE id = $id"
+        )
+
+        try {
+            const result = await statement.executeAsync({
+                $id: productId
+            })
+            
+            if (result.changes === 0) {
+                throw new Error("Produto não encontrado.");
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error("Erro ao remover o produto:", error);
+            throw error;
+        } finally {
+            await statement.finalizeAsync()
+        }
+    }
+
+    return { create, searchByName, searchByCompraId, removeProduct }
 }

@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, Button, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useCompraDatabase } from "@/src/database/useCompraDatabase";
 import { useProductDatabase } from "@/src/database/useProductDatabase";
 import { ProductDatabase } from "@/src/database/useProductDatabase";
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR');
+};
+
 export default function Details() {
   const { show } = useCompraDatabase();
-  const { searchByCompraId } = useProductDatabase();  // Buscar produtos por compra_id
+  const { searchByCompraId, removeProduct } = useProductDatabase();
   const params = useLocalSearchParams<{ id: string }>();
 
   const [compraData, setCompraData] = useState({
@@ -15,23 +20,25 @@ export default function Details() {
     descricao: "",
   });
 
-  const [products, setProducts] = useState<ProductDatabase[]>([]);  // Especificando o tipo do estado como ProductDatabase[]
+  const [products, setProducts] = useState<ProductDatabase[]>([]);
+  const [totalValue, setTotalValue] = useState(0);
 
   useEffect(() => {
     if (params.id) {
       const fetchData = async () => {
-        // Buscar os dados da compra
         const compra = await show(Number(params.id));
 
         if (compra) {
           setCompraData({
-            data: compra.data,
+            data: formatDate(compra.data),
             descricao: compra.descricao,
           });
 
-          // Buscar os produtos associados a essa compra
           const productsResponse = await searchByCompraId(Number(params.id));
-          setProducts(productsResponse);  // Agora o estado é atualizado com o tipo correto
+          setProducts(productsResponse);
+
+          const total = productsResponse.reduce((sum, product) => sum + (product.valor * product.quantidade), 0);
+          setTotalValue(total);
         } else {
           setCompraData({
             data: "Compra não encontrada",
@@ -43,6 +50,24 @@ export default function Details() {
     }
   }, [params.id, show, searchByCompraId]);
 
+  const handleRemoveProduct = async (productId: number) => {
+    try {
+      await removeProduct(productId);
+      setProducts((prevProducts) => {
+        const updatedProducts = prevProducts.filter(product => product.id !== productId);
+        
+        const newTotalValue = updatedProducts.reduce((sum, product) => sum + (product.valor * product.quantidade), 0);
+        setTotalValue(newTotalValue);
+
+        return updatedProducts;
+      });
+      Alert.alert("Sucesso", "Produto removido com sucesso!");
+    } catch (error) {
+      console.error("Erro ao remover o produto:", error);
+      Alert.alert("Erro", "Não foi possível remover o produto.");
+    }
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text style={{ fontSize: 32 }}>ID: {params.id}</Text>
@@ -52,11 +77,19 @@ export default function Details() {
       <Text style={{ fontSize: 24, marginTop: 20 }}>Produtos:</Text>
       <FlatList
         data={products}
-        keyExtractor={(prod) => String(prod.id)}  // 'id' agora está sendo reconhecido
+        keyExtractor={(prod) => String(prod.id)}
         renderItem={({ item }) => (
-          <Text>{item.nome} - {item.quantidade}</Text>  // 'nome' e 'quantidade' também são reconhecidos
+          <View>
+            <Text>{item.nome} - Quantidade: {item.quantidade} - Valor: {item.valor}</Text>
+            <Button 
+              title="Remover Produto"
+              onPress={() => handleRemoveProduct(item.id)}
+            />
+          </View>
         )}
       />
+      
+      <Text style={{ fontSize: 24, marginTop: 20 }}>Valor Total: R$ {totalValue.toFixed(2)}</Text>
     </View>
   );
 }
